@@ -1,0 +1,50 @@
+{
+  "name": "async-mutex-lite",
+  "version": "1.0.0",
+  "description": "A tiny keyed async mutex for JavaScript / TypeScript",
+  "author": "Deni Irawan Nugraha",
+  "email": "deni.irawan40563@gmail.com",
+  "homepage": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/denycode-dev/async-mutex-lite.git"
+  },
+  "type": "module",
+  "sideEffects": false,
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format esm,cjs --dts --clean",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:bench": "vitest bench --run",
+    "lint": "tsc --noEmit",
+    "prepublishOnly": "npm run lint && npm run test && npm run build"
+  },
+  "keywords": ["mutex", "async", "lock", "keyed", "typescript", "concurrency"],
+  "license": "MIT",
+  "devDependencies": {
+    "typescript": "^5.4.5",
+    "vitest": "^1.6.0",
+    "tsup": "^8.0.2",
+    "@vitest/coverage-v8": "^1.6.0"
+  },
+  "tags": [
+    "mutex",
+    "async",
+    "lock",
+    "keyed",
+    "typescript",
+    "concurrency"
+  ]
+}
