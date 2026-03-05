@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Primary SEO -->
+  <title>async-mutex-lite — Tiny Keyed Async Mutex for JavaScript & TypeScript</title>
+  <meta name="description" content="~500 bytes gzip, zero dependencies. Prevent race conditions in async JavaScript with a keyed mutex. Sequential per-key, parallel across keys. Supports Node.js, Bun, Deno, Cloudflare Workers, and browsers." />
+  <meta name="keywords" content="async mutex, keyed lock, async lock, javascript concurrency, typescript mutex, race condition, async await lock, npm library" />
+  <meta name="author" content="Deni Irawan Nugraha" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://www.npmjs.com/package/async-mutex-lite" />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="async-mutex-lite — Tiny Keyed Async Mutex" />
+  <meta property="og:description" content="~500 bytes. Zero deps. Prevent async race conditions with a keyed mutex for JS & TS." />
+  <meta property="og:url" content="https://www.npmjs.com/package/async-mutex-lite" />
+  <meta property="og:site_name" content="async-mutex-lite" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="async-mutex-lite — Tiny Keyed Async Mutex" />
+  <meta name="twitter:description" content="~500 bytes, zero deps. Sequential per-key, parallel across keys. TypeScript-first." />
+
+  <!-- JSON-LD Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "async-mutex-lite",
+    "version": "1.0.0",
+    "description": "A tiny keyed async mutex for JavaScript and TypeScript. ~500 bytes gzip, zero dependencies.",
+    "url": "https://www.npmjs.com/package/async-mutex-lite",
+    "downloadUrl": "https://www.npmjs.com/package/async-mutex-lite",
+    "author": {
+      "@type": "Person",
+      "name": "Deni Irawan Nugraha",
+      "email": "deni.irawan40563@gmail.com",
+      "url": "https://github.com/denycode-dev"
+    },
+    "codeRepository": "https://github.com/denycode-dev/async-mutex-lite",
+    "license": "https://opensource.org/licenses/MIT",
+    "programmingLanguage": ["JavaScript", "TypeScript"],
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Any",
+    "softwareRequirements": "Node.js 16+, Bun, Deno, or modern browser",
+    "keywords": ["mutex", "async", "lock", "keyed", "typescript", "concurrency"]
+  }
+  </script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            display: ['Syne', 'sans-serif'],
+            body: ['Instrument Sans', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            accent: {
+              DEFAULT: '#00D4AA',
+              dark: '#00B893',
+              light: '#33DEBB',
+            },
+            ink: {
+              950: '#090D10',
+              900: '#0E1419',
+              800: '#151C24',
+              700: '#1D2733',
+              600: '#263040',
+              500: '#3A4555',
+              400: '#5C6B7D',
+              300: '#8596A8',
+              200: '#B3BEC9',
+              100: '#DAE0E6',
+              50: '#F0F3F6',
+            }
+          },
+          animation: {
+            'fade-up': 'fadeUp 0.6s ease forwards',
+            'fade-in': 'fadeIn 0.5s ease forwards',
+            'pulse-slow': 'pulse 3s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeUp: {
+              '0%': { opacity: '0', transform: 'translateY(24px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --accent: #00D4AA;
+      --accent-glow: rgba(0, 212, 170, 0.25);
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'Instrument Sans', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 3px; }
+
+    /* Selection */
+    ::selection { background: rgba(0, 212, 170, 0.3); color: inherit; }
+
+    /* Grid pattern bg */
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(0, 212, 170, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 212, 170, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+
+    .light .grid-bg {
+      background-image:
+        linear-gradient(rgba(0, 180, 147, 0.06) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 180, 147, 0.06) 1px, transparent 1px);
+    }
+
+    /* Code blocks */
+    .code-block {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+    }
+
+    /* Glow accent */
+    .accent-glow {
+      text-shadow: 0 0 30px var(--accent-glow);
+    }
+
+    .card-glow:hover {
+      box-shadow: 0 0 0 1px rgba(0, 212, 170, 0.3), 0 8px 32px rgba(0, 212, 170, 0.08);
+    }
+
+    /* Animated badge dot */
+    .live-dot::before {
+      content: '';
+      display: inline-block;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      margin-right: 6px;
+      animation: pulse-ring 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-ring {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+
+    /* Staggered fade */
+    .stagger-1 { animation-delay: 0.1s; opacity: 0; }
+    .stagger-2 { animation-delay: 0.2s; opacity: 0; }
+    .stagger-3 { animation-delay: 0.35s; opacity: 0; }
+    .stagger-4 { animation-delay: 0.5s; opacity: 0; }
+    .stagger-5 { animation-delay: 0.65s; opacity: 0; }
+
+    /* Syntax highlight tokens */
+    .token-keyword { color: #c792ea; }
+    .token-string  { color: #c3e88d; }
+    .token-comment { color: #546e7a; font-style: italic; }
+    .token-fn      { color: #82aaff; }
+    .token-var     { color: #f78c6c; }
+    .token-type    { color: #ffcb6b; }
+    .token-accent  { color: #00D4AA; }
+    .token-number  { color: #f78c6c; }
+
+    .light .token-keyword { color: #7c3aed; }
+    .light .token-string  { color: #16a34a; }
+    .light .token-comment { color: #94a3b8; }
+    .light .token-fn      { color: #2563eb; }
+    .light .token-var     { color: #ea580c; }
+    .light .token-type    { color: #b45309; }
+    .light .token-accent  { color: #059669; }
+    .light .token-number  { color: #ea580c; }
+
+    /* Nav blur */
+    .nav-blur {
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+    }
+
+    /* Section reveal */
+    .reveal {
+      opacity: 0;
+      transform: translateY(20px);
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    .reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Tab active */
+    .tab-btn.active {
+      background: var(--accent);
+      color: #090D10;
+    }
+
+    /* Copy button */
+    .copy-btn { transition: all 0.2s ease; }
+    .copy-btn:hover { color: var(--accent); }
+
+    /* Table */
+    .comparison-table th { font-family: 'Syne', sans-serif; }
+
+    /* Diagonal divider */
+    .diagonal-clip {
+      clip-path: polygon(0 0, 100% 5%, 100% 100%, 0 95%);
+    }
+
+    /* Number large */
+    .stat-num {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+    }
+  </style>
+</head>
+
+<body id="app" class="dark bg-ink-950 text-ink-100 transition-colors duration-300">
+
+  <!-- ======= NAV ======= -->
+  <header class="fixed top-0 left-0 right-0 z-50 nav-blur border-b border-ink-800/60 dark:bg-ink-950/80 bg-white/80 dark:border-ink-800/60 border-ink-200/60 transition-colors duration-300">
+    <div class="max-w-6xl mx-auto px-5 h-16 flex items-center justify-between">
+      <a href="#" class="flex items-center gap-2.5 group">
+        <div class="w-8 h-8 rounded-lg bg-accent flex items-center justify-center">
+          <i class="fa-solid fa-lock-open text-ink-950 text-xs"></i>
+        </div>
+        <span class="font-display font-700 text-sm tracking-tight dark:text-white text-ink-900">async-mutex-lite</span>
+        <span class="text-xs font-mono px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">v1.0.0</span>
+      </a>
+
+      <nav class="hidden md:flex items-center gap-6 text-sm font-medium dark:text-ink-300 text-ink-500">
+        <a href="#why" class="hover:text-accent transition-colors">Why</a>
+        <a href="#usage" class="hover:text-accent transition-colors">Usage</a>
+        <a href="#api" class="hover:text-accent transition-colors">API</a>
+        <a href="#examples" class="hover:text-accent transition-colors">Examples</a>
+        <a href="#compare" class="hover:text-accent transition-colors">Compare</a>
+      </nav>
+
+      <div class="flex items-center gap-3">
+        <!-- Theme toggle -->
+        <button id="theme-toggle" aria-label="Toggle theme"
+          class="w-9 h-9 rounded-lg flex items-center justify-center dark:bg-ink-800 bg-ink-100 dark:text-ink-300 text-ink-500 hover:text-accent transition-all">
+          <i class="fa-solid fa-sun text-sm dark:hidden block"></i>
+          <i class="fa-solid fa-moon text-sm dark:block hidden"></i>
+        </button>
+        <a href="https://github.com/denycode-dev/async-mutex-lite" target="_blank" rel="noopener"
+          class="w-9 h-9 rounded-lg flex items-center justify-center dark:bg-ink-800 bg-ink-100 dark:text-ink-300 text-ink-500 hover:text-accent transition-all" aria-label="GitHub">
+          <i class="fa-brands fa-github text-sm"></i>
+        </a>
+        <a href="https://www.npmjs.com/package/async-mutex-lite" target="_blank" rel="noopener"
+          class="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg bg-accent text-ink-950 text-sm font-semibold hover:bg-accent-light transition-all">
+          <i class="fa-brands fa-npm text-base"></i>
+          Install
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main>
+
+    <!-- ======= HERO ======= -->
+    <section class="relative min-h-screen flex items-center justify-center pt-16 overflow-hidden grid-bg dark:bg-ink-950 bg-ink-50">
+      <!-- Radial glow -->
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] rounded-full pointer-events-none"
+        style="background: radial-gradient(circle, rgba(0,212,170,0.08) 0%, transparent 70%)"></div>
+
+      <div class="relative z-10 max-w-4xl mx-auto px-5 text-center py-24">
+
+        <!-- Badge -->
+        <div class="animate-fade-in stagger-1 inline-flex items-center gap-2 px-3 py-1.5 rounded-full dark:bg-ink-800/80 bg-white/80 border dark:border-ink-700 border-ink-200 text-xs font-mono dark:text-ink-300 text-ink-500 mb-8">
+          <span class="live-dot text-accent font-semibold">100% test coverage</span>
+          <span class="dark:text-ink-600 text-ink-300">·</span>
+          <span>zero dependencies</span>
+        </div>
+
+        <!-- Headline -->
+        <h1 class="animate-fade-up stagger-2 font-display font-800 text-5xl md:text-7xl tracking-tight leading-[1.05] dark:text-white text-ink-950 mb-6">
+          Async race conditions,<br>
+          <span class="text-accent accent-glow">finally solved.</span>
+        </h1>
+
+        <p class="animate-fade-up stagger-3 text-lg md:text-xl dark:text-ink-300 text-ink-500 max-w-xl mx-auto mb-10 leading-relaxed">
+          A <strong class="dark:text-white text-ink-900">~500 byte</strong> keyed mutex for JS & TS.
+          Sequential per key, parallel across keys — with zero configuration.
+        </p>
+
+        <!-- Install command -->
+        <div class="animate-fade-up stagger-4 inline-flex items-center gap-3 px-5 py-3 rounded-xl dark:bg-ink-800/90 bg-white border dark:border-ink-700 border-ink-200 font-mono text-sm dark:text-ink-200 text-ink-700 shadow-lg mb-10 max-w-full">
+          <span class="text-accent select-none">$</span>
+          <span id="install-cmd">npm install async-mutex-lite</span>
+          <button onclick="copyInstall()" class="copy-btn dark:text-ink-500 text-ink-400 hover:text-accent ml-2 flex-shrink-0" title="Copy" aria-label="Copy install command">
+            <i class="fa-regular fa-copy" id="copy-icon"></i>
+          </button>
+        </div>
+
+        <!-- CTA row -->
+        <div class="animate-fade-up stagger-5 flex flex-wrap items-center justify-center gap-3">
+          <a href="#usage" class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-ink-950 font-semibold text-sm hover:bg-accent-light transition-all shadow-lg shadow-accent/20">
+            <i class="fa-solid fa-book-open text-xs"></i>
+            Read the docs
+          </a>
+          <a href="https://github.com/denycode-dev/async-mutex-lite" target="_blank" rel="noopener"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg dark:bg-ink-800 bg-white border dark:border-ink-700 border-ink-200 dark:text-ink-200 text-ink-700 font-semibold text-sm hover:border-accent/50 transition-all">
+            <i class="fa-brands fa-github text-sm"></i>
+            View on GitHub
+          </a>
+        </div>
+
+        <!-- Stat strip -->
+        <div class="mt-16 grid grid-cols-3 gap-px dark:bg-ink-800 bg-ink-200 rounded-xl overflow-hidden max-w-lg mx-auto">
+          <div class="dark:bg-ink-900 bg-white px-4 py-5 text-center">
+            <div class="stat-num text-2xl text-accent">~500B</div>
+            <div class="text-xs dark:text-ink-500 text-ink-400 mt-1">gzip size</div>
+          </div>
+          <div class="dark:bg-ink-900 bg-white px-4 py-5 text-center">
+            <div class="stat-num text-2xl dark:text-white text-ink-900">0</div>
+            <div class="text-xs dark:text-ink-500 text-ink-400 mt-1">dependencies</div>
+          </div>
+          <div class="dark:bg-ink-900 bg-white px-4 py-5 text-center">
+            <div class="stat-num text-2xl dark:text-white text-ink-900">100%</div>
+            <div class="text-xs dark:text-ink-500 text-ink-400 mt-1">test coverage</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= WHY ======= -->
+    <section id="why" class="py-24 dark:bg-ink-900 bg-ink-50">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="reveal text-center mb-16">
+          <div class="inline-flex items-center gap-2 text-xs font-mono text-accent uppercase tracking-widest mb-4">
+            <i class="fa-solid fa-circle-exclamation"></i> The problem
+          </div>
+          <h2 class="font-display font-800 text-4xl md:text-5xl dark:text-white text-ink-950 tracking-tight">JS is single-threaded.<br><span class="text-accent">Race conditions aren't.</span></h2>
+        </div>
+
+        <div class="reveal grid md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+          <!-- Dangerous -->
+          <article class="rounded-2xl overflow-hidden border dark:border-ink-700 border-ink-200 card-glow transition-all">
+            <div class="flex items-center gap-3 px-5 py-3 dark:bg-ink-800 bg-ink-100 border-b dark:border-ink-700 border-ink-200">
+              <div class="w-6 h-6 rounded-full bg-red-500/15 flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-red-500 text-xs"></i>
+              </div>
+              <span class="font-mono text-sm dark:text-ink-300 text-ink-500">Without mutex — dangerous</span>
+            </div>
+            <pre class="code-block p-5 dark:bg-ink-900/60 bg-white overflow-x-auto"><code><span class="token-comment">// ❌ Two requests arrive simultaneously</span>
+<span class="token-keyword">app</span>.<span class="token-fn">post</span>(<span class="token-string">"/checkout"</span>, <span class="token-keyword">async</span> (<span class="token-var">req</span>) => {
+  <span class="token-comment">// Both read $100 before either deducts</span>
+  <span class="token-keyword">const</span> <span class="token-var">balance</span> = <span class="token-keyword">await</span> <span class="token-fn">getBalance</span>(<span class="token-var">req</span>.userId)
+
+  <span class="token-keyword">if</span> (<span class="token-var">balance</span> >= <span class="token-var">req</span>.amount) {
+    <span class="token-keyword">await</span> <span class="token-fn">deductBalance</span>(<span class="token-var">req</span>.userId, <span class="token-var">req</span>.amount)
+    <span class="token-keyword">await</span> <span class="token-fn">createOrder</span>(<span class="token-var">req</span>.userId)
+  }
+  <span class="token-comment">// Result: balance deducted twice 💸</span>
+})</code></pre>
+          </article>
+
+          <!-- Safe -->
+          <article class="rounded-2xl overflow-hidden border border-accent/30 card-glow transition-all" style="box-shadow: 0 0 0 1px rgba(0,212,170,0.15)">
+            <div class="flex items-center gap-3 px-5 py-3 dark:bg-ink-800 bg-accent/5 border-b border-accent/20">
+              <div class="w-6 h-6 rounded-full bg-accent/15 flex items-center justify-center">
+                <i class="fa-solid fa-check text-accent text-xs"></i>
+              </div>
+              <span class="font-mono text-sm dark:text-ink-300 text-ink-500">With async-mutex-lite — safe</span>
+            </div>
+            <pre class="code-block p-5 dark:bg-ink-900/60 bg-white overflow-x-auto"><code><span class="token-comment">// ✅ Requests for same user are queued</span>
+<span class="token-keyword">app</span>.<span class="token-fn">post</span>(<span class="token-string">"/checkout"</span>, <span class="token-keyword">async</span> (<span class="token-var">req</span>) => {
+  <span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">`checkout:<span class="token-accent">${req.userId}</span>`</span>, <span class="token-keyword">async</span> () => {
+    <span class="token-keyword">const</span> <span class="token-var">balance</span> = <span class="token-keyword">await</span> <span class="token-fn">getBalance</span>(<span class="token-var">req</span>.userId)
+
+    <span class="token-keyword">if</span> (<span class="token-var">balance</span> >= <span class="token-var">req</span>.amount) {
+      <span class="token-keyword">await</span> <span class="token-fn">deductBalance</span>(<span class="token-var">req</span>.userId, <span class="token-var">req</span>.amount)
+      <span class="token-keyword">await</span> <span class="token-fn">createOrder</span>(<span class="token-var">req</span>.userId)
+    }
+  })
+  <span class="token-comment">// Result: safe, sequential per user ✅</span>
+})</code></pre>
+          </article>
+        </div>
+
+        <!-- How it works visual -->
+        <div class="reveal mt-16 max-w-3xl mx-auto">
+          <div class="rounded-2xl dark:bg-ink-800/60 bg-white border dark:border-ink-700 border-ink-200 p-8">
+            <h3 class="font-display font-700 text-lg dark:text-white text-ink-900 mb-6 flex items-center gap-2">
+              <i class="fa-solid fa-diagram-project text-accent"></i>
+              How it works — Promise chaining
+            </h3>
+            <div class="font-mono text-sm space-y-3">
+              <div class="flex items-center gap-3">
+                <span class="dark:text-ink-500 text-ink-400 w-32 flex-shrink-0">mutex("user:1")</span>
+                <div class="flex items-center gap-2 flex-1">
+                  <div class="px-3 py-1.5 rounded bg-accent/15 text-accent border border-accent/30 text-xs">taskA</div>
+                  <i class="fa-solid fa-arrow-right text-ink-600 text-xs"></i>
+                  <div class="px-3 py-1.5 rounded bg-accent/10 text-accent/80 border border-accent/20 text-xs">taskB</div>
+                  <i class="fa-solid fa-arrow-right text-ink-600 text-xs"></i>
+                  <div class="px-3 py-1.5 rounded bg-accent/10 text-accent/60 border border-accent/15 text-xs">taskC</div>
+                  <span class="text-xs dark:text-ink-500 text-ink-400">sequential</span>
+                </div>
+              </div>
+              <div class="flex items-center gap-3">
+                <span class="dark:text-ink-500 text-ink-400 w-32 flex-shrink-0">mutex("user:2")</span>
+                <div class="flex items-center gap-2">
+                  <div class="px-3 py-1.5 rounded dark:bg-ink-700 bg-ink-100 dark:text-ink-300 text-ink-600 text-xs">taskD</div>
+                  <span class="text-xs dark:text-ink-500 text-ink-400">parallel — independent</span>
+                </div>
+              </div>
+            </div>
+            <p class="mt-5 text-sm dark:text-ink-400 text-ink-500 leading-relaxed">
+              Each key maintains its own promise chain. New tasks always wait for the previous task in the chain to finish. Memory is cleaned automatically after all tasks complete — <strong class="dark:text-ink-200 text-ink-700">no memory leaks.</strong>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= USAGE ======= -->
+    <section id="usage" class="py-24 dark:bg-ink-950 bg-white">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="reveal text-center mb-16">
+          <div class="inline-flex items-center gap-2 text-xs font-mono text-accent uppercase tracking-widest mb-4">
+            <i class="fa-solid fa-terminal"></i> Quick start
+          </div>
+          <h2 class="font-display font-800 text-4xl md:text-5xl dark:text-white text-ink-950 tracking-tight">Up and running<br><span class="text-accent">in 30 seconds.</span></h2>
+        </div>
+
+        <!-- Package manager tabs -->
+        <div class="reveal max-w-2xl mx-auto mb-12">
+          <div class="flex gap-1 p-1 rounded-xl dark:bg-ink-800 bg-ink-100 mb-4 w-fit mx-auto">
+            <button class="tab-btn active text-xs font-mono px-4 py-2 rounded-lg transition-all" data-pm="npm" onclick="switchPM(this, 'npm')">npm</button>
+            <button class="tab-btn text-xs font-mono px-4 py-2 rounded-lg dark:text-ink-400 text-ink-500 hover:dark:text-white hover:text-ink-900 transition-all" data-pm="pnpm" onclick="switchPM(this, 'pnpm')">pnpm</button>
+            <button class="tab-btn text-xs font-mono px-4 py-2 rounded-lg dark:text-ink-400 text-ink-500 hover:dark:text-white hover:text-ink-900 transition-all" data-pm="yarn" onclick="switchPM(this, 'yarn')">yarn</button>
+            <button class="tab-btn text-xs font-mono px-4 py-2 rounded-lg dark:text-ink-400 text-ink-500 hover:dark:text-white hover:text-ink-900 transition-all" data-pm="bun" onclick="switchPM(this, 'bun')">bun</button>
+          </div>
+          <div class="relative rounded-xl dark:bg-ink-800/60 bg-ink-50 border dark:border-ink-700 border-ink-200 px-5 py-4 font-mono text-sm dark:text-ink-200 text-ink-700 flex items-center justify-between">
+            <span><span class="text-accent">$ </span><span id="pm-cmd">npm install async-mutex-lite</span></span>
+            <button onclick="copyPM()" class="copy-btn dark:text-ink-500 text-ink-400" title="Copy" aria-label="Copy">
+              <i class="fa-regular fa-copy" id="pm-copy-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Basic usage -->
+        <div class="reveal max-w-3xl mx-auto">
+          <div class="rounded-2xl overflow-hidden border dark:border-ink-700 border-ink-200">
+            <div class="flex items-center justify-between px-5 py-3 dark:bg-ink-800 bg-ink-50 border-b dark:border-ink-700 border-ink-200">
+              <div class="flex items-center gap-2">
+                <div class="w-3 h-3 rounded-full bg-red-500/50"></div>
+                <div class="w-3 h-3 rounded-full bg-yellow-500/50"></div>
+                <div class="w-3 h-3 rounded-full bg-green-500/50"></div>
+              </div>
+              <span class="font-mono text-xs dark:text-ink-400 text-ink-500">basic-usage.ts</span>
+              <button onclick="copyCode('basic-code')" class="copy-btn text-xs dark:text-ink-500 text-ink-400 flex items-center gap-1.5" aria-label="Copy code">
+                <i class="fa-regular fa-copy"></i> Copy
+              </button>
+            </div>
+            <pre class="code-block p-6 dark:bg-ink-900 bg-white overflow-x-auto" id="basic-code"><code><span class="token-keyword">import</span> { <span class="token-fn">mutex</span> } <span class="token-keyword">from</span> <span class="token-string">"async-mutex-lite"</span>
+
+<span class="token-comment">// Async function — returns the task's return value</span>
+<span class="token-keyword">const</span> <span class="token-var">result</span> = <span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">"my-key"</span>, <span class="token-keyword">async</span> () => {
+  <span class="token-keyword">const</span> <span class="token-var">data</span> = <span class="token-keyword">await</span> <span class="token-fn">fetchSomething</span>()
+  <span class="token-keyword">return</span> <span class="token-var">data</span>
+})
+
+<span class="token-comment">// Sync functions work too</span>
+<span class="token-keyword">const</span> <span class="token-var">value</span> = <span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">"my-key"</span>, () => {
+  <span class="token-keyword">return</span> <span class="token-number">42</span>
+})
+
+<span class="token-comment">// TypeScript generic inference — no casting needed</span>
+<span class="token-keyword">const</span> <span class="token-var">user</span>: <span class="token-type">User | undefined</span> = <span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">"fetch-user"</span>, <span class="token-keyword">async</span> () => {
+  <span class="token-keyword">return</span> <span class="token-keyword">await</span> db.user.<span class="token-fn">findFirst</span>()
+})</code></pre>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= USE CASES ======= -->
+    <section class="py-24 dark:bg-ink-900 bg-ink-50">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="reveal text-center mb-16">
+          <div class="inline-flex items-center gap-2 text-xs font-mono text-accent uppercase tracking-widest mb-4">
+            <i class="fa-solid fa-lightbulb"></i> Use cases
+          </div>
+          <h2 class="font-display font-800 text-4xl md:text-5xl dark:text-white text-ink-950 tracking-tight">Built for real-world<br><span class="text-accent">async problems.</span></h2>
+        </div>
+
+        <div class="reveal grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+
+          <article class="rounded-2xl dark:bg-ink-800/50 bg-white border dark:border-ink-700 border-ink-200 p-6 card-glow transition-all">
+            <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
+              <i class="fa-solid fa-coins text-accent"></i>
+            </div>
+            <h3 class="font-display font-700 dark:text-white text-ink-900 mb-2">Financial Transactions</h3>
+            <p class="text-sm dark:text-ink-400 text-ink-500 mb-4 leading-relaxed">Prevent double-charges or negative balances when multiple requests hit the same user account.</p>
+            <pre class="code-block text-xs dark:bg-ink-900 bg-ink-50 rounded-lg p-3 overflow-x-auto"><code><span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">`wallet:<span class="token-accent">${userId}</span>`</span>, () =>
+  <span class="token-fn">processPayment</span>(<span class="token-var">userId</span>, <span class="token-var">amount</span>)
+)</code></pre>
+          </article>
+
+          <article class="rounded-2xl dark:bg-ink-800/50 bg-white border dark:border-ink-700 border-ink-200 p-6 card-glow transition-all">
+            <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
+              <i class="fa-solid fa-webhook text-accent"></i>
+            </div>
+            <h3 class="font-display font-700 dark:text-white text-ink-900 mb-2">Webhook Deduplication</h3>
+            <p class="text-sm dark:text-ink-400 text-ink-500 mb-4 leading-relaxed">Idempotent webhook processing — even when the same event is delivered twice.</p>
+            <pre class="code-block text-xs dark:bg-ink-900 bg-ink-50 rounded-lg p-3 overflow-x-auto"><code><span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">`webhook:<span class="token-accent">${event.id}</span>`</span>, () =>
+  <span class="token-fn">processWebhook</span>(<span class="token-var">event</span>)
+)</code></pre>
+          </article>
+
+          <article class="rounded-2xl dark:bg-ink-800/50 bg-white border dark:border-ink-700 border-ink-200 p-6 card-glow transition-all">
+            <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
+              <i class="fa-solid fa-bolt text-accent"></i>
+            </div>
+            <h3 class="font-display font-700 dark:text-white text-ink-900 mb-2">Cache Stampede</h3>
+            <p class="text-sm dark:text-ink-400 text-ink-500 mb-4 leading-relaxed">Prevent thundering herd — only one request populates the cache, others wait and reuse.</p>
+            <pre class="code-block text-xs dark:bg-ink-900 bg-ink-50 rounded-lg p-3 overflow-x-auto"><code><span class="token-keyword">return</span> <span class="token-fn">mutex</span>(<span class="token-string">`cache:<span class="token-accent">${userId}</span>`</span>, <span class="token-keyword">async</span> () => {
+  <span class="token-keyword">if</span> (<span class="token-var">cache</span>.<span class="token-fn">has</span>(<span class="token-var">userId</span>)) <span class="token-keyword">return</span> <span class="token-var">cache</span>.<span class="token-fn">get</span>(<span class="token-var">userId</span>)
+  <span class="token-keyword">const</span> <span class="token-var">user</span> = <span class="token-keyword">await</span> db.<span class="token-fn">findUser</span>(<span class="token-var">userId</span>)
+  <span class="token-var">cache</span>.<span class="token-fn">set</span>(<span class="token-var">userId</span>, <span class="token-var">user</span>)
+  <span class="token-keyword">return</span> <span class="token-var">user</span>
+})</code></pre>
+          </article>
+
+          <article class="rounded-2xl dark:bg-ink-800/50 bg-white border dark:border-ink-700 border-ink-200 p-6 card-glow transition-all">
+            <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
+              <i class="fa-solid fa-box text-accent"></i>
+            </div>
+            <h3 class="font-display font-700 dark:text-white text-ink-900 mb-2">Inventory Updates</h3>
+            <p class="text-sm dark:text-ink-400 text-ink-500 mb-4 leading-relaxed">Prevent overselling by sequencing all stock reads/writes for the same product.</p>
+            <pre class="code-block text-xs dark:bg-ink-900 bg-ink-50 rounded-lg p-3 overflow-x-auto"><code><span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">`product:<span class="token-accent">${productId}</span>`</span>, <span class="token-keyword">async</span> () => {
+  <span class="token-keyword">const</span> <span class="token-var">stock</span> = <span class="token-keyword">await</span> <span class="token-fn">getStock</span>(<span class="token-var">productId</span>)
+  <span class="token-keyword">if</span> (<span class="token-var">stock</span> > <span class="token-number">0</span>) <span class="token-keyword">await</span> <span class="token-fn">decrementStock</span>(<span class="token-var">productId</span>)
+})</code></pre>
+          </article>
+
+          <article class="rounded-2xl dark:bg-ink-800/50 bg-white border dark:border-ink-700 border-ink-200 p-6 card-glow transition-all">
+            <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
+              <i class="fa-solid fa-file-lines text-accent"></i>
+            </div>
+            <h3 class="font-display font-700 dark:text-white text-ink-900 mb-2">File Write Operations</h3>
+            <p class="text-sm dark:text-ink-400 text-ink-500 mb-4 leading-relaxed">Serialize concurrent writes to a shared file — no data corruption or partial writes.</p>
+            <pre class="code-block text-xs dark:bg-ink-900 bg-ink-50 rounded-lg p-3 overflow-x-auto"><code><span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">"log-file"</span>, () =>
+  fs.<span class="token-fn">appendFile</span>(<span class="token-string">"app.log"</span>, <span class="token-var">logLine</span>)
+)</code></pre>
+          </article>
+
+          <article class="rounded-2xl dark:bg-ink-800/50 bg-white border dark:border-ink-700 border-ink-200 p-6 card-glow transition-all">
+            <div class="w-10 h-10 rounded-xl bg-accent/10 flex items-center justify-center mb-4">
+              <i class="fa-solid fa-gauge-high text-accent"></i>
+            </div>
+            <h3 class="font-display font-700 dark:text-white text-ink-900 mb-2">Per-User Rate Limiting</h3>
+            <p class="text-sm dark:text-ink-400 text-ink-500 mb-4 leading-relaxed">Throttle external API calls on a per-user basis without complex queueing infrastructure.</p>
+            <pre class="code-block text-xs dark:bg-ink-900 bg-ink-50 rounded-lg p-3 overflow-x-auto"><code><span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">`api-call:<span class="token-accent">${userId}</span>`</span>, () =>
+  <span class="token-fn">callExternalAPI</span>(<span class="token-var">userId</span>)
+)</code></pre>
+          </article>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= API REFERENCE ======= -->
+    <section id="api" class="py-24 dark:bg-ink-950 bg-white">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="reveal text-center mb-16">
+          <div class="inline-flex items-center gap-2 text-xs font-mono text-accent uppercase tracking-widest mb-4">
+            <i class="fa-solid fa-code"></i> API Reference
+          </div>
+          <h2 class="font-display font-800 text-4xl md:text-5xl dark:text-white text-ink-950 tracking-tight">One function.<br><span class="text-accent">Three parameters.</span></h2>
+        </div>
+
+        <div class="reveal max-w-4xl mx-auto space-y-8">
+
+          <!-- Function signature -->
+          <div class="rounded-2xl overflow-hidden border dark:border-ink-700 border-ink-200">
+            <div class="flex items-center justify-between px-5 py-3 dark:bg-ink-800 bg-ink-50 border-b dark:border-ink-700 border-ink-200">
+              <span class="font-mono text-xs dark:text-ink-400 text-ink-500">type signature</span>
+              <button onclick="copyCode('sig-code')" class="copy-btn text-xs dark:text-ink-500 text-ink-400 flex items-center gap-1.5" aria-label="Copy">
+                <i class="fa-regular fa-copy"></i> Copy
+              </button>
+            </div>
+            <pre class="code-block p-6 dark:bg-ink-900 bg-white overflow-x-auto" id="sig-code"><code><span class="token-keyword">function</span> <span class="token-fn">mutex</span>&lt;<span class="token-type">T</span>&gt;(
+  <span class="token-var">key</span>: <span class="token-type">string</span>,
+  <span class="token-var">task</span>: () => <span class="token-type">Promise</span>&lt;<span class="token-type">T</span>&gt; | <span class="token-type">T</span>,
+  <span class="token-var">options</span>?: <span class="token-type">MutexOptions</span>
+): <span class="token-type">Promise</span>&lt;<span class="token-type">T | undefined</span>&gt;
+
+<span class="token-keyword">interface</span> <span class="token-type">MutexOptions</span> {
+  <span class="token-var">onError</span>?: <span class="token-string">"continue"</span> | <span class="token-string">"stop"</span>  <span class="token-comment">// default: "continue"</span>
+}</code></pre>
+          </div>
+
+          <!-- Parameters table -->
+          <div class="reveal overflow-hidden rounded-2xl border dark:border-ink-700 border-ink-200">
+            <table class="comparison-table w-full text-sm">
+              <thead>
+                <tr class="dark:bg-ink-800 bg-ink-50 border-b dark:border-ink-700 border-ink-200">
+                  <th class="text-left px-5 py-3 font-display font-700 dark:text-white text-ink-900 text-xs uppercase tracking-wider">Parameter</th>
+                  <th class="text-left px-5 py-3 font-display font-700 dark:text-white text-ink-900 text-xs uppercase tracking-wider">Type</th>
+                  <th class="text-left px-5 py-3 font-display font-700 dark:text-white text-ink-900 text-xs uppercase tracking-wider">Required</th>
+                  <th class="text-left px-5 py-3 font-display font-700 dark:text-white text-ink-900 text-xs uppercase tracking-wider hidden md:table-cell">Description</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y dark:divide-ink-800 divide-ink-100">
+                <tr class="dark:bg-ink-900 bg-white hover:dark:bg-ink-800/50 hover:bg-ink-50 transition-colors">
+                  <td class="px-5 py-4 font-mono text-accent text-xs">key</td>
+                  <td class="px-5 py-4 font-mono dark:text-ink-300 text-ink-600 text-xs">string</td>
+                  <td class="px-5 py-4"><span class="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">required</span></td>
+                  <td class="px-5 py-4 dark:text-ink-400 text-ink-500 hidden md:table-cell text-xs">Resource identifier. Tasks with same key are queued sequentially.</td>
+                </tr>
+                <tr class="dark:bg-ink-900 bg-white hover:dark:bg-ink-800/50 hover:bg-ink-50 transition-colors">
+                  <td class="px-5 py-4 font-mono text-accent text-xs">task</td>
+                  <td class="px-5 py-4 font-mono dark:text-ink-300 text-ink-600 text-xs">() =&gt; Promise&lt;T&gt; | T</td>
+                  <td class="px-5 py-4"><span class="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">required</span></td>
+                  <td class="px-5 py-4 dark:text-ink-400 text-ink-500 hidden md:table-cell text-xs">Function to execute. Can be async or synchronous.</td>
+                </tr>
+                <tr class="dark:bg-ink-900 bg-white hover:dark:bg-ink-800/50 hover:bg-ink-50 transition-colors">
+                  <td class="px-5 py-4 font-mono text-accent text-xs">options</td>
+                  <td class="px-5 py-4 font-mono dark:text-ink-300 text-ink-600 text-xs">MutexOptions</td>
+                  <td class="px-5 py-4"><span class="text-xs px-2 py-0.5 rounded-full dark:bg-ink-700 bg-ink-100 dark:text-ink-400 text-ink-500">optional</span></td>
+                  <td class="px-5 py-4 dark:text-ink-400 text-ink-500 hidden md:table-cell text-xs">Error handling strategy. Defaults to <code class="font-mono text-accent">"continue"</code>.</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Error strategies -->
+          <div class="reveal grid md:grid-cols-2 gap-5">
+            <div class="rounded-2xl overflow-hidden border dark:border-ink-700 border-ink-200 card-glow transition-all">
+              <div class="px-5 py-4 dark:bg-ink-800 bg-ink-50 border-b dark:border-ink-700 border-ink-200">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-mono text-sm text-accent">"continue"</span>
+                  <span class="text-xs px-2 py-0.5 rounded-full bg-accent/10 text-accent border border-accent/20">default</span>
+                </div>
+                <p class="text-xs dark:text-ink-400 text-ink-500">Queue continues even if a task fails. Use when failures shouldn't block other tasks.</p>
+              </div>
+              <pre class="code-block p-4 dark:bg-ink-900 bg-white text-xs overflow-x-auto"><code><span class="token-keyword">const</span> <span class="token-var">t1</span> = <span class="token-fn">mutex</span>(<span class="token-string">"key"</span>, () => {
+  <span class="token-keyword">throw new</span> <span class="token-fn">Error</span>(<span class="token-string">"failed"</span>)
+}).<span class="token-fn">catch</span>(<span class="token-var">console</span>.error)
+
+<span class="token-comment">// This STILL runs ✅</span>
+<span class="token-keyword">const</span> <span class="token-var">t2</span> = <span class="token-fn">mutex</span>(<span class="token-string">"key"</span>, () => <span class="token-string">"ok"</span>)</code></pre>
+            </div>
+
+            <div class="rounded-2xl overflow-hidden border dark:border-ink-700 border-ink-200 card-glow transition-all">
+              <div class="px-5 py-4 dark:bg-ink-800 bg-ink-50 border-b dark:border-ink-700 border-ink-200">
+                <div class="flex items-center gap-2 mb-1">
+                  <span class="font-mono text-sm text-accent">"stop"</span>
+                </div>
+                <p class="text-xs dark:text-ink-400 text-ink-500">All pending tasks are cancelled on failure. For all-or-nothing transactional workflows.</p>
+              </div>
+              <pre class="code-block p-4 dark:bg-ink-900 bg-white text-xs overflow-x-auto"><code><span class="token-keyword">const</span> <span class="token-var">t1</span> = <span class="token-fn">mutex</span>(<span class="token-string">"key"</span>, () => {
+  <span class="token-keyword">throw new</span> <span class="token-fn">Error</span>(<span class="token-string">"failed"</span>)
+}, { <span class="token-var">onError</span>: <span class="token-string">"stop"</span> })
+
+<span class="token-comment">// This will NOT run ❌</span>
+<span class="token-keyword">const</span> <span class="token-var">t2</span> = <span class="token-fn">mutex</span>(<span class="token-string">"key"</span>, () => <span class="token-string">"skipped"</span>)</code></pre>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= REAL WORLD EXAMPLES ======= -->
+    <section id="examples" class="py-24 dark:bg-ink-900 bg-ink-50">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="reveal text-center mb-16">
+          <div class="inline-flex items-center gap-2 text-xs font-mono text-accent uppercase tracking-widest mb-4">
+            <i class="fa-solid fa-flask"></i> Real world
+          </div>
+          <h2 class="font-display font-800 text-4xl md:text-5xl dark:text-white text-ink-950 tracking-tight">Production-ready<br><span class="text-accent">code examples.</span></h2>
+        </div>
+
+        <div class="reveal max-w-4xl mx-auto space-y-6">
+
+          <!-- Express example -->
+          <details class="group rounded-2xl overflow-hidden border dark:border-ink-700 border-ink-200 dark:bg-ink-800/40 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none dark:hover:bg-ink-800 hover:bg-ink-50 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg dark:bg-ink-700 bg-ink-100 flex items-center justify-center">
+                  <i class="fa-brands fa-node-js text-green-500 text-sm"></i>
+                </div>
+                <div>
+                  <div class="font-display font-700 dark:text-white text-ink-900 text-sm">Express.js — Checkout API</div>
+                  <div class="text-xs dark:text-ink-500 text-ink-400">Prevent double-charge in concurrent requests</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-down text-accent text-xs transition-transform group-open:rotate-180"></i>
+            </summary>
+            <div class="border-t dark:border-ink-700 border-ink-200">
+              <pre class="code-block p-6 dark:bg-ink-900 bg-white overflow-x-auto"><code><span class="token-keyword">import</span> express <span class="token-keyword">from</span> <span class="token-string">"express"</span>
+<span class="token-keyword">import</span> { <span class="token-fn">mutex</span> } <span class="token-keyword">from</span> <span class="token-string">"async-mutex-lite"</span>
+
+<span class="token-keyword">const</span> <span class="token-var">app</span> = <span class="token-fn">express</span>()
+
+<span class="token-var">app</span>.<span class="token-fn">post</span>(<span class="token-string">"/checkout"</span>, <span class="token-keyword">async</span> (<span class="token-var">req</span>, <span class="token-var">res</span>) => {
+  <span class="token-keyword">const</span> { <span class="token-var">userId</span>, <span class="token-var">productId</span>, <span class="token-var">quantity</span> } = <span class="token-var">req</span>.body
+
+  <span class="token-keyword">try</span> {
+    <span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">`checkout:<span class="token-accent">${userId}</span>`</span>, <span class="token-keyword">async</span> () => {
+      <span class="token-keyword">const</span> [<span class="token-var">balance</span>, <span class="token-var">stock</span>] = <span class="token-keyword">await</span> <span class="token-type">Promise</span>.<span class="token-fn">all</span>([
+        <span class="token-fn">getBalance</span>(<span class="token-var">userId</span>),
+        <span class="token-fn">getStock</span>(<span class="token-var">productId</span>),
+      ])
+
+      <span class="token-keyword">if</span> (<span class="token-var">balance</span> < <span class="token-var">req</span>.body.total) <span class="token-keyword">throw new</span> <span class="token-fn">Error</span>(<span class="token-string">"Insufficient balance"</span>)
+      <span class="token-keyword">if</span> (<span class="token-var">stock</span> < <span class="token-var">quantity</span>) <span class="token-keyword">throw new</span> <span class="token-fn">Error</span>(<span class="token-string">"Insufficient stock"</span>)
+
+      <span class="token-keyword">await</span> <span class="token-type">Promise</span>.<span class="token-fn">all</span>([
+        <span class="token-fn">deductBalance</span>(<span class="token-var">userId</span>, <span class="token-var">req</span>.body.total),
+        <span class="token-fn">deductStock</span>(<span class="token-var">productId</span>, <span class="token-var">quantity</span>),
+        <span class="token-fn">createOrder</span>({ <span class="token-var">userId</span>, <span class="token-var">productId</span>, <span class="token-var">quantity</span> }),
+      ])
+    })
+
+    <span class="token-var">res</span>.<span class="token-fn">json</span>({ <span class="token-var">success</span>: <span class="token-keyword">true</span> })
+  } <span class="token-keyword">catch</span> (<span class="token-var">err</span>) {
+    <span class="token-var">res</span>.<span class="token-fn">status</span>(<span class="token-number">400</span>).<span class="token-fn">json</span>({ <span class="token-var">error</span>: <span class="token-var">err</span>.message })
+  }
+})</code></pre>
+            </div>
+          </details>
+
+          <!-- Next.js example -->
+          <details class="group rounded-2xl overflow-hidden border dark:border-ink-700 border-ink-200 dark:bg-ink-800/40 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none dark:hover:bg-ink-800 hover:bg-ink-50 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg dark:bg-ink-700 bg-ink-100 flex items-center justify-center">
+                  <i class="fa-solid fa-n text-white text-xs font-bold"></i>
+                </div>
+                <div>
+                  <div class="font-display font-700 dark:text-white text-ink-900 text-sm">Next.js — Prevent Duplicate Submission</div>
+                  <div class="text-xs dark:text-ink-500 text-ink-400">Email subscription with race-safe deduplication</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-down text-accent text-xs transition-transform group-open:rotate-180"></i>
+            </summary>
+            <div class="border-t dark:border-ink-700 border-ink-200">
+              <pre class="code-block p-6 dark:bg-ink-900 bg-white overflow-x-auto"><code><span class="token-keyword">import</span> { <span class="token-fn">mutex</span> } <span class="token-keyword">from</span> <span class="token-string">"async-mutex-lite"</span>
+
+<span class="token-keyword">export async function</span> <span class="token-fn">POST</span>(<span class="token-var">req</span>: <span class="token-type">Request</span>) {
+  <span class="token-keyword">const</span> { <span class="token-var">email</span> } = <span class="token-keyword">await</span> <span class="token-var">req</span>.<span class="token-fn">json</span>()
+
+  <span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">`subscribe:<span class="token-accent">${email}</span>`</span>, <span class="token-keyword">async</span> () => {
+    <span class="token-keyword">const</span> <span class="token-var">exists</span> = <span class="token-keyword">await</span> db.user.<span class="token-fn">findUnique</span>({ where: { <span class="token-var">email</span> } })
+    <span class="token-keyword">if</span> (<span class="token-var">exists</span>) <span class="token-keyword">throw new</span> <span class="token-fn">Error</span>(<span class="token-string">"Email already registered"</span>)
+
+    <span class="token-keyword">await</span> db.user.<span class="token-fn">create</span>({ data: { <span class="token-var">email</span> } })
+    <span class="token-keyword">await</span> <span class="token-fn">sendWelcomeEmail</span>(<span class="token-var">email</span>)
+  })
+
+  <span class="token-keyword">return</span> Response.<span class="token-fn">json</span>({ message: <span class="token-string">"Subscription successful!"</span> })
+}</code></pre>
+            </div>
+          </details>
+
+          <!-- Webhook example -->
+          <details class="group rounded-2xl overflow-hidden border dark:border-ink-700 border-ink-200 dark:bg-ink-800/40 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none dark:hover:bg-ink-800 hover:bg-ink-50 transition-colors">
+              <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg dark:bg-ink-700 bg-ink-100 flex items-center justify-center">
+                  <i class="fa-solid fa-webhook text-accent text-sm"></i>
+                </div>
+                <div>
+                  <div class="font-display font-700 dark:text-white text-ink-900 text-sm">Webhook — Idempotent Processing</div>
+                  <div class="text-xs dark:text-ink-500 text-ink-400">Handle duplicate delivery gracefully</div>
+                </div>
+              </div>
+              <i class="fa-solid fa-chevron-down text-accent text-xs transition-transform group-open:rotate-180"></i>
+            </summary>
+            <div class="border-t dark:border-ink-700 border-ink-200">
+              <pre class="code-block p-6 dark:bg-ink-900 bg-white overflow-x-auto"><code><span class="token-keyword">import</span> { <span class="token-fn">mutex</span> } <span class="token-keyword">from</span> <span class="token-string">"async-mutex-lite"</span>
+
+<span class="token-keyword">async function</span> <span class="token-fn">handleWebhook</span>(<span class="token-var">event</span>: <span class="token-type">WebhookEvent</span>) {
+  <span class="token-keyword">await</span> <span class="token-fn">mutex</span>(<span class="token-string">`webhook:<span class="token-accent">${event.id}</span>`</span>, <span class="token-keyword">async</span> () => {
+    <span class="token-keyword">const</span> <span class="token-var">alreadyProcessed</span> = <span class="token-keyword">await</span> db.webhook.<span class="token-fn">findUnique</span>({
+      where: { id: <span class="token-var">event</span>.id }
+    })
+
+    <span class="token-keyword">if</span> (<span class="token-var">alreadyProcessed</span>) <span class="token-keyword">return</span>
+
+    <span class="token-keyword">await</span> <span class="token-fn">processEvent</span>(<span class="token-var">event</span>)
+    <span class="token-keyword">await</span> db.webhook.<span class="token-fn">create</span>({ data: { id: <span class="token-var">event</span>.id } })
+  })
+}</code></pre>
+            </div>
+          </details>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= COMPARISON ======= -->
+    <section id="compare" class="py-24 dark:bg-ink-950 bg-white">
+      <div class="max-w-6xl mx-auto px-5">
+        <div class="reveal text-center mb-16">
+          <div class="inline-flex items-center gap-2 text-xs font-mono text-accent uppercase tracking-widest mb-4">
+            <i class="fa-solid fa-scale-balanced"></i> Comparison
+          </div>
+          <h2 class="font-display font-800 text-4xl md:text-5xl dark:text-white text-ink-950 tracking-tight">Smallest footprint.<br><span class="text-accent">Most features.</span></h2>
+        </div>
+
+        <div class="reveal overflow-x-auto rounded-2xl border dark:border-ink-700 border-ink-200 max-w-3xl mx-auto">
+          <table class="comparison-table w-full text-sm">
+            <thead>
+              <tr class="dark:bg-ink-800 bg-ink-50 border-b dark:border-ink-700 border-ink-200">
+                <th class="text-left px-5 py-3 font-display font-700 dark:text-white text-ink-900 text-xs uppercase tracking-wider">Library</th>
+                <th class="text-center px-4 py-3 font-display font-700 dark:text-white text-ink-900 text-xs uppercase tracking-wider">Size</th>
+                <th class="text-center px-4 py-3 font-display font-700 dark:text-white text-ink-900 text-xs uppercase tracking-wider">Keyed Lock</th>
+                <th class="text-center px-4 py-3 font-display font-700 dark:text-white text-ink-900 text-xs uppercase tracking-wider">Error Strategy</th>
+                <th class="text-center px-4 py-3 font-display font-700 dark:text-white text-ink-900 text-xs uppercase tracking-wider">TypeScript</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y dark:divide-ink-800 divide-ink-100">
+              <tr class="dark:bg-ink-900 bg-white dark:text-ink-400 text-ink-500">
+                <td class="px-5 py-4 font-mono text-xs">async-lock</td>
+                <td class="px-4 py-4 text-center text-xs">~5 KB</td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-check text-green-500"></i></td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-xmark text-red-400"></i></td>
+                <td class="px-4 py-4 text-center text-xs dark:text-ink-500 text-ink-400">Partial</td>
+              </tr>
+              <tr class="dark:bg-ink-900 bg-white dark:text-ink-400 text-ink-500">
+                <td class="px-5 py-4 font-mono text-xs">async-mutex</td>
+                <td class="px-4 py-4 text-center text-xs">~3 KB</td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-xmark text-red-400"></i></td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-xmark text-red-400"></i></td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-check text-green-500"></i></td>
+              </tr>
+              <tr class="dark:bg-ink-900 bg-white dark:text-ink-400 text-ink-500">
+                <td class="px-5 py-4 font-mono text-xs">await-lock</td>
+                <td class="px-4 py-4 text-center text-xs">~1 KB</td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-xmark text-red-400"></i></td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-xmark text-red-400"></i></td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-xmark text-red-400"></i></td>
+              </tr>
+              <tr class="dark:bg-ink-800/80 bg-accent/5 border dark:border-accent/20 border-accent/20" style="outline: 1px solid rgba(0,212,170,0.2)">
+                <td class="px-5 py-4">
+                  <div class="font-mono text-xs text-accent font-semibold">async-mutex-lite</div>
+                  <div class="text-xs text-accent/60 mt-0.5">← you are here</div>
+                </td>
+                <td class="px-4 py-4 text-center font-semibold text-accent text-xs">~500B</td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-check text-accent"></i></td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-check text-accent"></i></td>
+                <td class="px-4 py-4 text-center"><i class="fa-solid fa-check text-accent"></i></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= FAQ ======= -->
+    <section class="py-24 dark:bg-ink-900 bg-ink-50">
+      <div class="max-w-3xl mx-auto px-5">
+        <div class="reveal text-center mb-16">
+          <div class="inline-flex items-center gap-2 text-xs font-mono text-accent uppercase tracking-widest mb-4">
+            <i class="fa-solid fa-circle-question"></i> FAQ
+          </div>
+          <h2 class="font-display font-800 text-4xl md:text-5xl dark:text-white text-ink-950 tracking-tight">Questions <span class="text-accent">answered.</span></h2>
+        </div>
+
+        <div class="reveal space-y-3">
+
+          <details class="group rounded-xl overflow-hidden border dark:border-ink-700 border-ink-200 dark:bg-ink-800/40 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none dark:hover:bg-ink-800 hover:bg-ink-50 transition-colors">
+              <span class="font-display font-600 dark:text-white text-ink-900 text-sm">Is this production ready?</span>
+              <i class="fa-solid fa-chevron-down text-accent text-xs transition-transform group-open:rotate-180"></i>
+            </summary>
+            <div class="px-6 pb-5 dark:text-ink-400 text-ink-500 text-sm leading-relaxed border-t dark:border-ink-700 border-ink-100 pt-4">
+              Yes. The library has no dependencies, a very small surface area, and 100% test coverage. It's been designed for production use from day one.
+            </div>
+          </details>
+
+          <details class="group rounded-xl overflow-hidden border dark:border-ink-700 border-ink-200 dark:bg-ink-800/40 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none dark:hover:bg-ink-800 hover:bg-ink-50 transition-colors">
+              <span class="font-display font-600 dark:text-white text-ink-900 text-sm">Does it work in serverless environments?</span>
+              <i class="fa-solid fa-chevron-down text-accent text-xs transition-transform group-open:rotate-180"></i>
+            </summary>
+            <div class="px-6 pb-5 dark:text-ink-400 text-ink-500 text-sm leading-relaxed border-t dark:border-ink-700 border-ink-100 pt-4">
+              Yes — with an important caveat. Each serverless instance has its own memory. Mutex works only when conflicting requests hit the <strong class="dark:text-white text-ink-800">same instance</strong>. For cross-instance coordination you'll need an external lock (e.g., Redis).
+            </div>
+          </details>
+
+          <details class="group rounded-xl overflow-hidden border dark:border-ink-700 border-ink-200 dark:bg-ink-800/40 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none dark:hover:bg-ink-800 hover:bg-ink-50 transition-colors">
+              <span class="font-display font-600 dark:text-white text-ink-900 text-sm">Is execution order (FIFO) guaranteed?</span>
+              <i class="fa-solid fa-chevron-down text-accent text-xs transition-transform group-open:rotate-180"></i>
+            </summary>
+            <div class="px-6 pb-5 dark:text-ink-400 text-ink-500 text-sm leading-relaxed border-t dark:border-ink-700 border-ink-100 pt-4">
+              Yes. Tasks are executed in exactly the order they were scheduled. The library uses a simple promise chain — no priority queue complexity.
+            </div>
+          </details>
+
+          <details class="group rounded-xl overflow-hidden border dark:border-ink-700 border-ink-200 dark:bg-ink-800/40 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none dark:hover:bg-ink-800 hover:bg-ink-50 transition-colors">
+              <span class="font-display font-600 dark:text-white text-ink-900 text-sm">Does it support CommonJS and ESM?</span>
+              <i class="fa-solid fa-chevron-down text-accent text-xs transition-transform group-open:rotate-180"></i>
+            </summary>
+            <div class="px-6 pb-5 dark:text-ink-400 text-ink-500 text-sm leading-relaxed border-t dark:border-ink-700 border-ink-100 pt-4">
+              Yes. The package ships both <code class="font-mono text-accent text-xs">.js</code> (ESM) and <code class="font-mono text-accent text-xs">.cjs</code> (CommonJS) builds with full TypeScript type declarations.
+            </div>
+          </details>
+
+          <details class="group rounded-xl overflow-hidden border dark:border-ink-700 border-ink-200 dark:bg-ink-800/40 bg-white">
+            <summary class="flex items-center justify-between px-6 py-4 cursor-pointer list-none dark:hover:bg-ink-800 hover:bg-ink-50 transition-colors">
+              <span class="font-display font-600 dark:text-white text-ink-900 text-sm">Can memory leak if keys accumulate?</span>
+              <i class="fa-solid fa-chevron-down text-accent text-xs transition-transform group-open:rotate-180"></i>
+            </summary>
+            <div class="px-6 pb-5 dark:text-ink-400 text-ink-500 text-sm leading-relaxed border-t dark:border-ink-700 border-ink-100 pt-4">
+              No. After all tasks for a key complete, the internal entry is cleaned up automatically. Memory usage stays proportional to the number of active (currently running or waiting) task queues only.
+            </div>
+          </details>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ======= CTA / FOOTER ======= -->
+    <section class="py-24 dark:bg-ink-950 bg-white relative overflow-hidden">
+      <div class="absolute inset-0 grid-bg pointer-events-none"></div>
+      <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full pointer-events-none"
+        style="background: radial-gradient(circle, rgba(0,212,170,0.06) 0%, transparent 70%)"></div>
+
+      <div class="relative reveal max-w-2xl mx-auto px-5 text-center">
+        <div class="w-14 h-14 rounded-2xl bg-accent flex items-center justify-center mx-auto mb-6">
+          <i class="fa-solid fa-lock-open text-ink-950 text-xl"></i>
+        </div>
+        <h2 class="font-display font-800 text-4xl md:text-5xl dark:text-white text-ink-950 tracking-tight mb-4">
+          Ready to ship<br><span class="text-accent">race-condition-free?</span>
+        </h2>
+        <p class="dark:text-ink-400 text-ink-500 mb-8 text-lg">
+          Install in seconds. Zero config. Works everywhere.
+        </p>
+
+        <div class="inline-flex items-center gap-3 px-5 py-3 rounded-xl dark:bg-ink-800 bg-ink-50 border dark:border-ink-700 border-ink-200 font-mono text-sm dark:text-ink-200 text-ink-700 mb-8">
+          <span class="text-accent">$</span>
+          <span>npm install async-mutex-lite</span>
+          <button onclick="copyInstall()" class="copy-btn dark:text-ink-500 text-ink-400" title="Copy" aria-label="Copy">
+            <i class="fa-regular fa-copy"></i>
+          </button>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-center gap-4">
+          <a href="https://www.npmjs.com/package/async-mutex-lite" target="_blank" rel="noopener"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-accent text-ink-950 font-semibold text-sm hover:bg-accent-light transition-all shadow-lg shadow-accent/20">
+            <i class="fa-brands fa-npm"></i> npm package
+          </a>
+          <a href="https://github.com/denycode-dev/async-mutex-lite" target="_blank" rel="noopener"
+            class="flex items-center gap-2 px-5 py-2.5 rounded-lg dark:bg-ink-800 bg-ink-100 dark:border-ink-700 border-ink-200 border dark:text-ink-200 text-ink-700 font-semibold text-sm hover:border-accent/50 transition-all">
+            <i class="fa-brands fa-github"></i> GitHub
+          </a>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ======= FOOTER ======= -->
+  <footer class="border-t dark:border-ink-800 border-ink-200 dark:bg-ink-950 bg-white py-10">
+    <div class="max-w-6xl mx-auto px-5 flex flex-col md:flex-row items-center justify-between gap-4 text-sm dark:text-ink-500 text-ink-400">
+      <div class="flex items-center gap-2">
+        <div class="w-6 h-6 rounded-md bg-accent flex items-center justify-center">
+          <i class="fa-solid fa-lock-open text-ink-950 text-xs"></i>
+        </div>
+        <span class="font-mono">async-mutex-lite</span>
+        <span class="text-xs">·</span>
+        <span>MIT License</span>
+      </div>
+      <div class="flex items-center gap-1">
+        Made with <i class="fa-solid fa-heart text-red-400 mx-1 text-xs"></i> by
+        <a href="https://github.com/denycode-dev" target="_blank" rel="noopener"
+          class="ml-1 text-accent hover:underline">Deni Irawan Nugraha</a>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="https://github.com/denycode-dev/async-mutex-lite" target="_blank" rel="noopener" class="hover:text-accent transition-colors" aria-label="GitHub">
+          <i class="fa-brands fa-github"></i>
+        </a>
+        <a href="https://www.npmjs.com/package/async-mutex-lite" target="_blank" rel="noopener" class="hover:text-accent transition-colors" aria-label="npm">
+          <i class="fa-brands fa-npm text-lg"></i>
+        </a>
+        <a href="mailto:deni.irawan40563@gmail.com" class="hover:text-accent transition-colors" aria-label="Email">
+          <i class="fa-solid fa-envelope"></i>
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── Theme ──
+    const app = document.getElementById('app');
+    const toggle = document.getElementById('theme-toggle');
+    const saved = localStorage.getItem('theme');
+
+    function setTheme(dark) {
+      if (dark) {
+        app.classList.add('dark');
+        app.classList.remove('light');
+      } else {
+        app.classList.remove('dark');
+        app.classList.add('light');
+      }
+      localStorage.setItem('theme', dark ? 'dark' : 'light');
+    }
+
+    // Default to dark
+    setTheme(saved !== 'light');
+
+    toggle.addEventListener('click', () => {
+      setTheme(!app.classList.contains('dark'));
+    });
+
+    // ── Scroll reveal ──
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // ── Package manager ──
+    const pmCmds = {
+      npm: 'npm install async-mutex-lite',
+      pnpm: 'pnpm add async-mutex-lite',
+      yarn: 'yarn add async-mutex-lite',
+      bun: 'bun add async-mutex-lite',
+    };
+
+    function switchPM(btn, pm) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      document.getElementById('pm-cmd').textContent = pmCmds[pm];
+    }
+
+    // ── Copy helpers ──
+    function copyText(text, iconId) {
+      navigator.clipboard.writeText(text).then(() => {
+        const icon = document.getElementById(iconId);
+        if (icon) {
+          icon.className = 'fa-solid fa-check';
+          setTimeout(() => icon.className = 'fa-regular fa-copy', 2000);
+        }
+      });
+    }
+
+    function copyInstall() {
+      copyText('npm install async-mutex-lite', 'copy-icon');
+    }
+
+    function copyPM() {
+      copyText(document.getElementById('pm-cmd').textContent, 'pm-copy-icon');
+    }
+
+    function copyCode(id) {
+      const el = document.getElementById(id);
+      if (el) navigator.clipboard.writeText(el.innerText);
+    }
+
+    // ── Stagger animations on load ──
+    window.addEventListener('load', () => {
+      document.querySelectorAll('.stagger-1, .stagger-2, .stagger-3, .stagger-4, .stagger-5').forEach(el => {
+        el.style.animationFillMode = 'forwards';
+        el.classList.add('animate-fade-up');
+      });
+    });
+  </script>
+</body>
+</html>
