@@ -1,5 +1,18 @@
 # async-mutex-lite
 
+<!-- Package Info -->
+[![npm version](https://img.shields.io/npm/v/async-mutex-lite?color=0ea5e9&style=flat-square)](https://www.npmjs.com/package/async-mutex-lite)
+[![npm downloads](https://img.shields.io/npm/dw/async-mutex-lite?color=0ea5e9&style=flat-square)](https://www.npmjs.com/package/async-mutex-lite)
+[![license](https://img.shields.io/npm/l/async-mutex-lite?color=0ea5e9&style=flat-square)](./LICENSE)
+
+<!-- Tech Quality -->
+[![TypeScript](https://img.shields.io/npm/types/async-mutex-lite?style=flat-square)](https://www.npmjs.com/package/async-mutex-lite)
+[![zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen?style=flat-square)](./package.json)
+
+<!-- Security -->
+[![Snyk Security](https://snyk.io/test/github/denycode-dev/async-mutex-lite/badge.svg?style=flat-square)](https://snyk.io/test/github/denycode-dev/async-mutex-lite)
+[![Socket Security](https://badge.socket.dev/npm/package/async-mutex-lite)](https://socket.dev/npm/package/async-mutex-lite)
+
 > 🔒 Tiny keyed async mutex for JavaScript & TypeScript — ~400–600 bytes gzip, zero dependencies.
 
 Have you ever run into a situation where two async processes run at the same time and produce inconsistent results? That’s exactly the problem this library solves.

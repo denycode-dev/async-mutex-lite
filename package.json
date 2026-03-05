@@ -4,7 +4,7 @@
   "description": "A tiny keyed async mutex for JavaScript / TypeScript",
   "author": "Deni Irawan Nugraha",
   "email": "deni.irawan40563@gmail.com",
-  "homepage": "",
+  "homepage": "https://async-mutex-lite.vercel.app",
   "repository": {
     "type": "git",
     "url": "https://github.com/denycode-dev/async-mutex-lite.git"
